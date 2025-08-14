@@ -1,4 +1,4 @@
-\# WORMVOLUTION!
+# WORMVOLUTION!
 
 
 
@@ -6,7 +6,7 @@ An evolution simulator applying basic machine learning principles to demonstrate
 
 
 
-\### To Make:
+### To Make:
 
 use the make.bat file.
 
@@ -15,7 +15,7 @@ use the make.bat file.
 
 
 
-\### To Run:
+### To Run:
 
 use the run.bat file.
 
@@ -24,11 +24,10 @@ use the run.bat file.
 
 
 
-\### Design:
+### Design:
 
 Follows a loose MVC model. See the flowchart in this directory. Main.java is the controller in this framework and is the root of the program. 
 
 
-
-@authors Sean Thornton and Sky Vercauteren, 2025.
+@authors: Sean Thornton and Sky Vercauteren, 2025.
 
