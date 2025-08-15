@@ -17,9 +17,81 @@ import java.awt.geom.RoundRectangle2D;
 
 public class Window extends JFrame {
 
+    //panels and frames
     private final JPanel contentPane;
     private final JPanel titleBar;
-    
+    private final JPanel mainContent;
+
+    //sizes
+	private static Dimension screenSize;
+	private static Dimension windowSize = new Dimension(1200,1100);
+	private static int sizeConstraint;
+	private static int boardSize;
+    private static double scale = 1;
+
+    //colors
+    public static Color[] themeColors = {
+        new Color(7, 3, 28),        //primary
+        new Color(197, 215, 252),   //secondary
+        new Color(34, 46, 56),      //background
+        new Color(70, 70, 70),      //titlebar
+        new Color(50, 50, 50),      //titlebuttonHover
+        new Color(99, 129, 138),    //button
+        new Color(240, 240, 240)      //label
+        };
+
+    public static Color[] defaultColors = {
+        new Color(153, 153, 153),   //control dark
+        new Color(255, 255, 255),   //control highlight
+        new Color(238, 238, 238),   //background
+        new Color(245, 254, 253),   //titlebar
+        new Color(225, 226, 230),   //titlebuttonHover
+        new Color(204, 204, 204),   //button
+        new Color(0, 0, 0)         //text
+    };
+
+    public static Color color_primary;
+    public static Color color_secondary;
+	public static Color color_background;
+    public static Color color_titlebar;
+    public static Color color_titlebuttonHover;
+    public static Color color_button;
+    public static Color color_text;
+
+    public static void setDefaultColors(){
+        int i = 0;
+        color_primary = defaultColors[i];
+        i++;
+        color_secondary = defaultColors[i];
+        i++;
+        color_background = defaultColors[i];
+        i++;
+        color_titlebar = defaultColors[i];
+        i++;
+        color_titlebuttonHover = defaultColors[i];
+        i++;
+        color_button = defaultColors[i];
+        i++;
+        color_text = defaultColors[i];
+    }
+    public static void setThemeColors(){
+        int i = 0;
+        color_primary = themeColors[i];
+        i++;
+        color_secondary = themeColors[i];
+        i++;
+        color_background = themeColors[i];
+        i++;
+        color_titlebar = themeColors[i];
+        i++;
+        color_titlebuttonHover = themeColors[i];
+        i++;
+        color_button = themeColors[i];
+        i++;
+        color_text = themeColors[i];
+    }
+
+    // window function
     private int mouseX, mouseY;
     private boolean isResizing = false;
     private int resizeDirection = 0;
@@ -29,11 +101,14 @@ public class Window extends JFrame {
     public Window() {
         // Remove the default window decorations provided by the OS
         setUndecorated(true);
+
+        // set colors
+        setDefaultColors();
         setBackground(new Color(0, 0, 0, 0)); // Transparent background
         
         // Use a content pane with a transparent background
         contentPane = new JPanel(new BorderLayout());
-        contentPane.setBackground(new Color(240, 240, 240));
+        contentPane.setBackground(color_background);
         add(contentPane);
         
         // Create the title bar
@@ -44,7 +119,7 @@ public class Window extends JFrame {
         addListeners();
 
         // Main content area
-        JPanel mainContent = new JPanel();
+        mainContent = new JPanel();
         mainContent.setPreferredSize(new Dimension(800, 600));
         contentPane.add(mainContent, BorderLayout.CENTER);
         
@@ -54,24 +129,27 @@ public class Window extends JFrame {
         setVisible(true);
     }
 
+    // sub constructor for title bar: contains menus, min, max and x
     private JPanel newTitleBar() {
         JPanel bar = new JPanel(new BorderLayout());
-        bar.setBackground(new Color(60, 60, 60)); // Dark grey title bar
+        bar.setBackground(color_titlebar); // Dark grey title bar
         
         // Title label
         JLabel titleLabel = new JLabel(" WORMVOLUTION");
-        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setForeground(color_text);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10)); //pad the side before "file" menu
         bar.add(titleLabel, BorderLayout.WEST);
 
         // Menu Bar
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBorderPainted(false);
-        menuBar.setBackground(new Color(60, 60, 60));
+        menuBar.setBackground(color_titlebar);
         
         // File menu
         JMenu fileMenu = new JMenu("File");
-        fileMenu.setForeground(Color.WHITE);
+        fileMenu.setForeground(color_text);
+        fileMenu.setBackground(color_background);
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.addActionListener(e -> dispose());
         fileMenu.add(exitItem);
@@ -79,23 +157,27 @@ public class Window extends JFrame {
 
         // View menu
         JMenu viewMenu = new JMenu("View");
-        viewMenu.setForeground(Color.WHITE);
-        JMenuItem colorItem = new JMenuItem("Change Title Bar Color...");
-        colorItem.addActionListener(e -> {
-            Color newColor = JColorChooser.showDialog(this, "Choose a Title Bar Color", titleBar.getBackground());
-            if (newColor != null) {
-                titleBar.setBackground(newColor);
-                menuBar.setBackground(newColor);
+        viewMenu.setForeground(color_text);
+        viewMenu.setBackground(color_background);
+        JCheckBoxMenuItem themeSelector = new JCheckBoxMenuItem("Toggle Dark Theme");
+        themeSelector.addActionListener(e -> {
+            if (themeSelector.isSelected()) {
+                setThemeColors();
+            }else{
+                setDefaultColors();
             }
+            retheme();
+            revalidate();
+            repaint();
         });
-        viewMenu.add(colorItem);
+        viewMenu.add(themeSelector);
         menuBar.add(viewMenu);
         
         bar.add(menuBar, BorderLayout.CENTER);
 
         // Control buttons (minimize, maximize, close)
-        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        controlPanel.setOpaque(false);
+        JPanel basicButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        basicButtons.setOpaque(false);
         
         // Minimize button
         JButton minimize = createControlButton("-", (e) -> setState(JFrame.ICONIFIED));
@@ -112,41 +194,93 @@ public class Window extends JFrame {
         // Close button
         JButton close = createControlButton("X", (e) -> dispose());
         close.setPreferredSize(new Dimension(80,25));
-        close.setBackground(new Color(255, 60, 60)); // Red close button
+        close.setBackground(new Color(181, 60, 60)); // Red close button regardless of theme 
         
-        controlPanel.add(minimize);
-        controlPanel.add(maximize);
-        controlPanel.add(close);
+        basicButtons.add(minimize);
+        basicButtons.add(maximize);
+        basicButtons.add(close);
         
-        bar.add(controlPanel, BorderLayout.EAST);
+        bar.add(basicButtons, BorderLayout.EAST);
 
         return bar;
     }
 
+    // sub - sub constructor for basic buttons inside titlebar
     private JButton createControlButton(String text, ActionListener action) {
         JButton button = new JButton(text);
         button.setFont(new Font("Dialog", Font.BOLD, 14));
         button.setFocusable(false);
         button.setPreferredSize(new Dimension(60, 25));
         button.setBorderPainted(false);
-        button.setForeground(Color.WHITE);
-        button.setBackground(new Color(80, 80, 80));
+        button.setForeground(color_text);
+        button.setBackground(color_titlebar);
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                button.setBackground(new Color(100, 100, 100));
+                button.setBackground(color_titlebuttonHover);
+                if (text.equals("X")) {
+                    button.setBackground(new Color(255, 60, 60));
+                }
             }
             @Override
             public void mouseExited(MouseEvent e) {
-                button.setBackground(new Color(80, 80, 80));
+                button.setBackground(color_titlebar);
                 // Special handling for close button
                 if (text.equals("X")) {
-                    button.setBackground(new Color(255, 60, 60));
+                    button.setBackground(new Color(181, 60, 60));
                 }
             }
         });
         button.addActionListener(action);
         return button;
+    }
+
+    // systematically repaint all the components.
+    private void retheme() {
+        // the titlebar.
+        titleBar.setBackground(color_titlebar);
+        titleBar.setForeground(color_text);
+
+        // the title
+        titleBar.getComponent(0).setBackground(color_background);
+        titleBar.getComponent(0).setForeground(color_text);
+
+        // menus and basic buttons
+        //file menu and items
+        JMenuBar mb = (JMenuBar)titleBar.getComponent(1);
+        mb.setBackground(color_titlebar);
+        mb.setForeground(color_text);
+        JMenu menu = mb.getMenu(0); 
+        menu.setBackground(color_titlebar);
+        menu.setForeground(color_text);
+        int numberOfItems = menu.getItemCount();
+        for(int i =0; i<numberOfItems; i++) {
+            JMenuItem item = menu.getItem(i);
+            item.setBackground(color_background);
+            item.setForeground(color_text);
+        }
+        //view menu and items
+        menu = mb.getMenu(1); 
+        menu.setBackground(color_titlebar);
+        menu.setForeground(color_text);
+        numberOfItems = menu.getItemCount();
+        for(int i =0; i<numberOfItems; i++) {
+            JMenuItem item = menu.getItem(i);
+            item.setBackground(color_background);
+            item.setForeground(color_text);
+        }
+
+        //basic buttons. 
+        JPanel bb = (JPanel) titleBar.getComponent(2);
+        bb.getComponent(0).setBackground(color_titlebar); //minimize
+        bb.getComponent(0).setForeground(color_text);
+        bb.getComponent(1).setBackground(color_titlebar); //maximize
+        bb.getComponent(1).setForeground(color_text);
+        // component(3) is exit, leave that alone.
+
+        // Frame Conent
+        mainContent.setBackground(color_background);
+        mainContent.setForeground(color_text);
     }
     
     // Add mouse listeners to the frame for moving and resizing
