@@ -26,8 +26,17 @@ use the run.bat file.
 
 ### Design:
 
-Follows a loose MVC model. See the flowchart in this directory. Main.java is the controller in this framework and is the root of the program. 
+Follows a loose MVC model. See the flowchart in the documentation directory. Main.java is the controller in this framework and is the root of the program. 
 
+
+
+### Dependencies: 
+
+Requires java swing - should be in the dependencies directory.
+
+
+
+---
 
 @authors: Sean Thornton and Sky Vercauteren, 2025.
 

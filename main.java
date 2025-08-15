@@ -24,7 +24,8 @@ public class Main{
 
     public static void main(String[] args)
     {
-        SwingUtilities.invokeLater(() -> new views.Window());
+        Theme mainTheme = new Theme();
+        SwingUtilities.invokeLater(() -> new views.Window(mainTheme));
     }
 
 }
