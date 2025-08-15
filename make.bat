@@ -13,7 +13,7 @@ if exist %BUILD_DIR% (
 mkdir %BUILD_DIR%
 
 echo --- Compiling Java files ---
-javac -d %BUILD_DIR% -cp %CLASSPATH% views/*.java models/*.java *.java
+javac -d %BUILD_DIR% -cp %CLASSPATH% views/*.java *.java
 
 if %errorlevel% neq 0 (
     echo.
