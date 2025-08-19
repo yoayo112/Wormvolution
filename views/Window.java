@@ -27,7 +27,7 @@ public class Window extends JFrame {
 	private static Dimension screenSize;
 	private static Dimension windowSize = new Dimension(1200,1100);
 	private static int sizeConstraint;
-	private static int boardSize;
+    public int getSizeConstraint() {return sizeConstraint;}
     private static double scale = 1;
 
     //colors
@@ -40,9 +40,31 @@ public class Window extends JFrame {
     private boolean isResizing = false;
     private int resizeDirection = 0;
     private static final int DRAG_MARGIN = 5;
+    private boolean isOpen = true;
+    public boolean isOpen() { return isOpen; }
+
+    // make sure it triggers isOpen = false on close.
+    @Override
+    public void dispose() {
+        isOpen = false;
+        super.dispose();
+    }
 
     // Main constructor for the window
     public Window(Theme mainTheme) {
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        // Dynamic screen size -used for window size, board size, and component spacing.
+        // find the smallest dimension, consider padding, and make a square.
+    	GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    	screenSize = new Dimension(gd.getDisplayMode().getWidth(), gd.getDisplayMode().getHeight());
+    	sizeConstraint = (screenSize.width > screenSize.height ? screenSize.height : screenSize.width);
+        sizeConstraint = sizeConstraint - (int)(sizeConstraint * 0.06); // extra padding for visibility
+        
+        // build initial window frame
+    	windowSize.width = sizeConstraint;
+    	windowSize.height = sizeConstraint;
+
         // Remove the default window decorations provided by the OS
         setUndecorated(true);
         theme = mainTheme;
@@ -65,15 +87,24 @@ public class Window extends JFrame {
         addListeners();
 
         // Main content area
+        // This should only ever have two things in it: the world itself, and the control panel.
         mainContent = new JPanel();
-        mainContent.setPreferredSize(new Dimension(800, 600));
+        mainContent.setPreferredSize(windowSize);
         mainContent.setBackground(theme.color_background);
-        contentPane.add(mainContent, BorderLayout.CENTER);
         
         // Pack and set visible
+        contentPane.add(mainContent, BorderLayout.CENTER);
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+
+    // helper to add the board component from MAIN
+    public void addBoard(Board board){
+        board.setBackground(theme.color_background);
+        mainContent.add(board, BorderLayout.CENTER);
+        revalidate();
+        repaint();
     }
 
     // sub constructor for title bar: contains menus, min, max and x
@@ -207,6 +238,19 @@ public class Window extends JFrame {
     
     // Add mouse listeners to the frame for moving and resizing
     private void addListeners() {
+        // Listener for on close
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                isOpen = false;
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+                isOpen = false;
+            }
+        });
+
         // Listener for moving the frame
         titleBar.addMouseListener(new MouseAdapter() {
             @Override

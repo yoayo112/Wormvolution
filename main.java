@@ -21,11 +21,43 @@ import javax.swing.*;
 import views.*;
 
 public class Main{
+    public static views.Theme mainTheme;
+    public static views.Window mainWindow;
+    public static views.Board mainBoard;
 
     public static void main(String[] args)
     {
-        Theme mainTheme = new Theme();
-        SwingUtilities.invokeLater(() -> new views.Window(mainTheme));
+        // new window
+        mainTheme = new Theme();
+        mainWindow =  new views.Window(mainTheme);
+
+        // new board
+        int constraint = mainWindow.getSizeConstraint(); 
+        constraint = (constraint - (int)(constraint * 0.06));                            // regardless of screen size, every board and frame needs to be padded (in this case 6%).
+        //int boardSize = 830;                                                             // uncomment for a small defualt board.
+        int boardSize = constraint;                                                      // I prefer the largest possible board size as default, this should result in a "1" as pixelSize. 
+        int pixelSize = constraint / boardSize;
+        mainBoard = new Board(pixelSize, boardSize, constraint);
+        mainWindow.addBoard(mainBoard);
+        
+
+        // build sim and controls, pack and display!
+        //start(boardSize);
+        
+        // Start the main loop!! :D
+        // threaded for OS resource management, efficiency and EDT event handling.
+        new Thread(() -> {
+            while (mainWindow.isOpen()) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
+            System.out.println("Bye Felicia.");
+        }).start();
+
     }
 
 }
