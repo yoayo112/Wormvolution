@@ -15,13 +15,18 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 
+import controllers.*;
+
 public class Window extends JFrame {
 
     //panels and frames
     private final JPanel contentPane;
     private final JPanel titleBar;
+    public JPanel titleBar(){return titleBar;}
     private final JPanel mainContent;
+    public JPanel mainContent() {return mainContent;}
     private static MenuBar menuBar;
+    public MenuBar menuBar(){return menuBar;}
 
     //sizes
 	private static Dimension screenSize;
@@ -35,13 +40,10 @@ public class Window extends JFrame {
     public static void setTheme(Theme newTheme) {theme = newTheme;}
     public static Theme getTheme() { return theme;}
 
-    // window function
-    private int mouseX, mouseY;
-    private boolean isResizing = false;
-    private int resizeDirection = 0;
-    private static final int DRAG_MARGIN = 5;
-    private boolean isOpen = true;
-    public boolean isOpen() { return isOpen; }
+    //behavior
+    private static MainFrame mainFrame;
+    public MainFrame mainFrame(){return mainFrame;}
+    public boolean isOpen = true;
 
     // make sure it triggers isOpen = false on close.
     @Override
@@ -53,6 +55,7 @@ public class Window extends JFrame {
     // Main constructor for the window
     public Window(Theme mainTheme) {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        mainFrame = new MainFrame(this);
 
         // Dynamic screen size -used for window size, board size, and component spacing.
         // find the smallest dimension, consider padding, and make a square.
@@ -84,7 +87,7 @@ public class Window extends JFrame {
         contentPane.add(titleBar, BorderLayout.NORTH);
         
         // Add listeners for dragging and resizing
-        addListeners();
+        mainFrame.addListeners();
 
         // Main content area
         // This should only ever have two things in it: the world itself, and the control panel.
@@ -182,225 +185,8 @@ public class Window extends JFrame {
         button.addActionListener(action);
         return button;
     }
-
-    // toggle the dark mode theme on and off.
-    public void toggleDarkmode(boolean selected)
-    {
-        if (selected) {
-                theme.setThemeColors();
-                theme.mode = "Dark";
-            }else{
-                theme.setDefaultColors();
-                theme.mode = "Default";
-            }
-            retheme();
-            revalidate();
-            repaint();
-    }
-
-    // systematically repaint all the components.
-    private void retheme() {
-        // the titlebar.
-        titleBar.setBackground(theme.color_titlebar);
-        titleBar.setForeground(theme.color_text);
-
-        // the title
-        titleBar.getComponent(0).setBackground(theme.color_background);
-        titleBar.getComponent(0).setForeground(theme.color_text);
-
-        // menuBar, menus and menu items
-        menuBar.setBackground(theme.color_titlebar);
-        menuBar.setForeground(theme.color_text);
-        for (JMenu m : menuBar.menus)
-        {
-            m.setBackground(theme.color_titlebar);
-            m.setForeground(theme.color_text);
-            int numberOfItems = m.getItemCount();
-            for(int j =0; j<numberOfItems; j++) {
-                JMenuItem item = m.getItem(j);
-                item.setBackground(theme.color_background);
-                item.setForeground(theme.color_text);
-            }
-        }
-
-        //basic buttons. 
-        JPanel bb = (JPanel) titleBar.getComponent(2);
-        bb.getComponent(0).setBackground(theme.color_titlebar); //minimize
-        bb.getComponent(0).setForeground(theme.color_text);
-        bb.getComponent(1).setBackground(theme.color_titlebar); //maximize
-        bb.getComponent(1).setForeground(theme.color_text);
-        // component(2) is exit, leave that alone.
-
-        // Frame Content
-        mainContent.setBackground(theme.color_background);
-        mainContent.setForeground(theme.color_text);
-    }
     
-    // Add mouse listeners to the frame for moving and resizing
-    private void addListeners() {
-        // Listener for on close
-        this.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                isOpen = false;
-            }
-
-            @Override
-            public void windowClosed(WindowEvent e) {
-                isOpen = false;
-            }
-        });
-
-        // Listener for moving the frame
-        titleBar.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                mouseX = e.getX();
-                mouseY = e.getY();
-            }
-        });
-        
-        titleBar.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                if (getExtendedState() == JFrame.NORMAL) {
-                    setLocation(getX() + e.getX() - mouseX, getY() + e.getY() - mouseY);
-                }
-            }
-        });
-        
-        // Listener for resizing the frame from the edges
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (isResizeable()) {
-                    resizeDirection = getResizeDirection(e.getPoint());
-                    if (resizeDirection != 0) {
-                        isResizing = true;
-                        mouseX = e.getXOnScreen();
-                        mouseY = e.getYOnScreen();
-                    }
-                }
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                isResizing = false;
-                resizeDirection = 0;
-            }
-        });
-
-        addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                if (isResizing) {
-                    resize(e);
-                }
-            }
-
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                if (isResizeable() && getExtendedState() == JFrame.NORMAL) {
-                    setCursor(getResizeCursor(e.getPoint()));
-                } else {
-                    setCursor(Cursor.getDefaultCursor());
-                }
-            }
-        });
-    }
-    
-    private int getResizeDirection(Point p) {
-        int dir = 0;
-        int x = p.x;
-        int y = p.y;
-        int width = getWidth();
-        int height = getHeight();
-
-        // Check corners and edges for resizing
-        if (x < DRAG_MARGIN && y < DRAG_MARGIN) {
-            dir = Cursor.NW_RESIZE_CURSOR;
-        } else if (x > width - DRAG_MARGIN && y < DRAG_MARGIN) {
-            dir = Cursor.NE_RESIZE_CURSOR;
-        } else if (x < DRAG_MARGIN && y > height - DRAG_MARGIN) {
-            dir = Cursor.SW_RESIZE_CURSOR;
-        } else if (x > width - DRAG_MARGIN && y > height - DRAG_MARGIN) {
-            dir = Cursor.SE_RESIZE_CURSOR;
-        } else if (x < DRAG_MARGIN) {
-            dir = Cursor.W_RESIZE_CURSOR;
-        } else if (x > width - DRAG_MARGIN) {
-            dir = Cursor.E_RESIZE_CURSOR;
-        } else if (y < DRAG_MARGIN) {
-            dir = Cursor.N_RESIZE_CURSOR;
-        } else if (y > height - DRAG_MARGIN) {
-            dir = Cursor.S_RESIZE_CURSOR;
-        }
-        return dir;
-    }
-    
-    private Cursor getResizeCursor(Point p) {
-        int dir = getResizeDirection(p);
-        if (dir != 0) {
-            return Cursor.getPredefinedCursor(dir);
-        }
-        return Cursor.getDefaultCursor();
-    }
-    
-    private void resize(MouseEvent e) {
-        Rectangle bounds = getBounds();
-        int dx = e.getXOnScreen() - mouseX;
-        int dy = e.getYOnScreen() - mouseY;
-
-        int newX = bounds.x;
-        int newY = bounds.y;
-        int newWidth = bounds.width;
-        int newHeight = bounds.height;
-        
-        switch (resizeDirection) {
-            case Cursor.N_RESIZE_CURSOR:
-                newY += dy;
-                newHeight -= dy;
-                break;
-            case Cursor.S_RESIZE_CURSOR:
-                newHeight += dy;
-                break;
-            case Cursor.W_RESIZE_CURSOR:
-                newX += dx;
-                newWidth -= dx;
-                break;
-            case Cursor.E_RESIZE_CURSOR:
-                newWidth += dx;
-                break;
-            case Cursor.NW_RESIZE_CURSOR:
-                newX += dx;
-                newY += dy;
-                newWidth -= dx;
-                newHeight -= dy;
-                break;
-            case Cursor.NE_RESIZE_CURSOR:
-                newY += dy;
-                newWidth += dx;
-                newHeight -= dy;
-                break;
-            case Cursor.SW_RESIZE_CURSOR:
-                newX += dx;
-                newWidth -= dx;
-                newHeight += dy;
-                break;
-            case Cursor.SE_RESIZE_CURSOR:
-                newWidth += dx;
-                newHeight += dy;
-                break;
-        }
-        
-        // Prevent window from getting too small
-        if (newWidth > getMinimumSize().width && newHeight > getMinimumSize().height) {
-            setBounds(newX, newY, newWidth, newHeight);
-            mouseX = e.getXOnScreen();
-            mouseY = e.getYOnScreen();
-        }
-    }
-    
-    private boolean isResizeable() {
+    public boolean isResizeable() {
         // This is a simplified check. You may want to add more conditions.
         return true;
     }

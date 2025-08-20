@@ -19,8 +19,11 @@ import javax.swing.*;
 
 //packages
 import views.*;
+import controllers.*;
 
 public class Main{
+
+    // views
     public static views.Theme mainTheme;
     public static views.Window mainWindow;
     public static views.Board mainBoard;
@@ -47,7 +50,7 @@ public class Main{
         // Start the main loop!! :D
         // threaded for OS resource management, efficiency and EDT event handling.
         new Thread(() -> {
-            while (mainWindow.isOpen()) {
+            while (mainWindow.isOpen) {
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
