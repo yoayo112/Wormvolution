@@ -32,6 +32,7 @@ public class Window extends JFrame {
 	private static Dimension screenSize;
 	private static Dimension windowSize = new Dimension(1200,1100);
 	private static int sizeConstraint;
+    private static boolean portrait;
     public int getSizeConstraint() {return sizeConstraint;}
     private static double scale = 1;
 
@@ -61,12 +62,16 @@ public class Window extends JFrame {
         // find the smallest dimension, consider padding, and make a square.
     	GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     	screenSize = new Dimension(gd.getDisplayMode().getWidth(), gd.getDisplayMode().getHeight());
+        portrait = (screenSize.width >= screenSize.height ? false : true);
     	sizeConstraint = (screenSize.width > screenSize.height ? screenSize.height : screenSize.width);
+        sizeConstraint = (int)(screenSize.width*0.4);
+        portrait = true;
         sizeConstraint = sizeConstraint - (int)(sizeConstraint * 0.06); // extra padding for visibility
         
         // build initial window frame
-    	windowSize.width = sizeConstraint;
-    	windowSize.height = sizeConstraint;
+        int extra = sizeConstraint/2;
+    	windowSize.width = portrait? sizeConstraint: sizeConstraint + extra;
+    	windowSize.height = portrait? sizeConstraint + extra: sizeConstraint;
 
         // Remove the default window decorations provided by the OS
         setUndecorated(true);

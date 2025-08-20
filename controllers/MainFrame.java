@@ -1,6 +1,13 @@
 /**
  * The GUI controller. to handle behavior related to the main view, frame and window. 
- * Resizing, theme, colors, layout, etc. Mouse listeners.
+ * This is the "brain" of *just the window/frame*, it does not handle any functions relating to controls or simulation. 
+ * VIEW CONTROLS
+ * - resizing
+ * - close 
+ * - minimize
+ * - fullscreen
+ * - darkmode
+ * - dynamic layout
  * 
  * There is no physical component here. There are no buttons, sliders or anything to paint. This is listeners only. 
  * 
