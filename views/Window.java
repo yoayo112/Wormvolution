@@ -30,9 +30,25 @@ public class Window extends JFrame {
 
     //sizes
 	private static Dimension screenSize;
+    public static void setScreenSize() {
+        // Dynamic screen size -used for window size, board size, and component spacing.
+    	GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    	screenSize = new Dimension(gd.getDisplayMode().getWidth(), gd.getDisplayMode().getHeight());
+    }
+    public static Dimension getScreenSize(){return screenSize;}
 	private static Dimension windowSize = new Dimension(1200,1100);
 	private static int sizeConstraint;
     private static boolean portrait;
+    private static boolean landscape;
+    public static void orient(){
+        if(screenSize.width >= screenSize.height){
+            landscape = true;
+            portrait = false;
+        }else{
+            landscape = false;
+            portrait = true;
+        }
+    }
     public int getSizeConstraint() {return sizeConstraint;}
     private static double scale = 1;
 
@@ -58,14 +74,11 @@ public class Window extends JFrame {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         mainFrame = new MainFrame(this);
 
-        // Dynamic screen size -used for window size, board size, and component spacing.
         // find the smallest dimension, consider padding, and make a square.
-    	GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-    	screenSize = new Dimension(gd.getDisplayMode().getWidth(), gd.getDisplayMode().getHeight());
-        portrait = (screenSize.width >= screenSize.height ? false : true);
+        setScreenSize();
+        orient();
     	sizeConstraint = (screenSize.width > screenSize.height ? screenSize.height : screenSize.width);
         sizeConstraint = (int)(screenSize.width*0.4);
-        portrait = true;
         sizeConstraint = sizeConstraint - (int)(sizeConstraint * 0.06); // extra padding for visibility
         
         // build initial window frame
