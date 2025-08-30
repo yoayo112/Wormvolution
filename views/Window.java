@@ -33,7 +33,10 @@ public class Window extends JFrame {
     public static void setScreenSize() {
         // Dynamic screen size -used for window size, board size, and component spacing.
     	GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-    	screenSize = new Dimension(gd.getDisplayMode().getWidth(), gd.getDisplayMode().getHeight());
+        //Consider the windows task bar, I dont want to be under it
+        int height_adjustment = (int)(gd.getDisplayMode().getHeight() - 60);
+    	screenSize = new Dimension(gd.getDisplayMode().getWidth(), height_adjustment);
+        //screenSize = new Dimension(height_adjustment, gd.getDisplayMode().getWidth()); //FLIPPED for testing portrait
     }
     public static Dimension getScreenSize(){return screenSize;}
 	private static Dimension windowSize = new Dimension(1200,1100);
@@ -77,12 +80,12 @@ public class Window extends JFrame {
         // find the smallest dimension, consider padding, and make a square.
         setScreenSize();
         orient();
-    	sizeConstraint = (screenSize.width > screenSize.height ? screenSize.height : screenSize.width);
-        sizeConstraint = (int)(screenSize.width*0.4);
-        sizeConstraint = sizeConstraint - (int)(sizeConstraint * 0.06); // extra padding for visibility
+    	sizeConstraint = (landscape ? screenSize.height : screenSize.width);
+        sizeConstraint = (int)(sizeConstraint);
+        sizeConstraint = (int)(sizeConstraint * 0.98); // 2% extra padding for visibility, no matter what
         
         // build initial window frame
-        int extra = sizeConstraint/2;
+        int extra = sizeConstraint/2; // Extra space designated for control panel
     	windowSize.width = portrait? sizeConstraint: sizeConstraint + extra;
     	windowSize.height = portrait? sizeConstraint + extra: sizeConstraint;
 
