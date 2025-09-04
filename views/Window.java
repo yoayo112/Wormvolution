@@ -40,11 +40,25 @@ public class Window extends JFrame {
     }
     public static Dimension getScreenSize(){return screenSize;}
 	private static Dimension windowSize = new Dimension(1200,1100);
+    public static void setWindowSize(Dimension ws){windowSize = ws;}
+    public static Dimension getWindowSize(){return windowSize;}
 	private static int sizeConstraint;
     private static boolean portrait;
     private static boolean landscape;
+    public boolean getLandscape(){return landscape;}
     public static void orient(){
         if(screenSize.width >= screenSize.height){
+            landscape = true;
+            portrait = false;
+            sizeConstraint = (int)(screenSize.height);
+        }else{
+            landscape = false;
+            portrait = true;
+            sizeConstraint = (int)(screenSize.width);
+        }
+    }
+    public static void orient(boolean land){
+        if (land){
             landscape = true;
             portrait = false;
         }else{
@@ -80,8 +94,6 @@ public class Window extends JFrame {
         // find the smallest dimension, consider padding, and make a square.
         setScreenSize();
         orient();
-    	sizeConstraint = (landscape ? screenSize.height : screenSize.width);
-        sizeConstraint = (int)(sizeConstraint);
         sizeConstraint = (int)(sizeConstraint * 0.98); // 2% extra padding for visibility, no matter what
         
         // build initial window frame

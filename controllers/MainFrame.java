@@ -262,6 +262,52 @@ public class MainFrame{
             window.repaint();
     }
 
+    //TODO:
+    // - Sizing math??
+    // - Change menu item text.
+    // toggle portrait vs landscape orientation
+    public void toggleOrientation()
+    {
+        boolean landscape = window.getLandscape();
+        Dimension screenSize = window.getScreenSize();
+        Dimension windowSize = window.getWindowSize();
+        int constraint = window.getSizeConstraint();
+        int extra = (int)constraint/2;
+
+        // There are 4 options.
+        // 1. we go to portrait, but the monitor is landscape
+        if(landscape && screenSize.width >= screenSize.height)
+        {
+            constraint = (int)screenSize.width/2;
+            extra = (int)constraint/2;
+            constraint = (int)(constraint * 0.98); // 2% extra padding for visibility, no matter what
+            windowSize.height = constraint + extra;
+            windowSize.width = constraint;
+        }
+        // 2. we go to landscape but the monitor is portrait
+        else if(!landscape && screenSize.width < screenSize.height)
+        {
+            constraint = (int)screenSize.height/2;
+            extra = (int)constraint/2;
+            constraint = (int)(constraint * 0.98); // 2% extra padding for visibility, no matter what
+            windowSize.height = constraint;
+            windowSize.width = constraint + extra;
+        }
+        // 3. and 4. we revert to correct dimension from either of the first two states
+        else{
+            window.setScreenSize();
+            window.orient();
+            screenSize = window.getScreenSize();
+            constraint = (int)(constraint * 0.98); // 2% extra padding for visibility, no matter what
+            windowSize.width = landscape? constraint + extra: constraint;
+            windowSize.height = landscape? constraint: constraint + extra;
+        }
+        window.orient(!landscape);
+        window.mainContent().setPreferredSize(windowSize);
+        window.pack();
+        window.revalidate();
+        window.repaint();
+    }
 
     /**
      * Menu Bar Helpers
@@ -298,13 +344,25 @@ public class MainFrame{
         // dont be afraid to add non-checkbox items and seperators
 
         // add checkbox components
+        //darkmode
         JCheckBoxMenuItem darkmode = new JCheckBoxMenuItem("Dark Theme");
         darkmode.setSelected(true);
         darkmode.addActionListener(e -> { toggleDarkmode(darkmode.isSelected(), window.getTheme());});
         view.add(darkmode);
 
+        //orientation
+        String otherOrientation;
+        if(window.getLandscape() == true){
+            otherOrientation = "Profile";
+        }else{otherOrientation = "Landscape";}
+
+        JMenuItem layout = new JMenuItem("Layout: "+otherOrientation);
+        layout.addActionListener(e -> { toggleOrientation();});
+        view.add(layout);
+
         // store references to items.
         menuBar.viewMenuCheckboxes.add(darkmode);
+        menuBar.viewMenuItems.add(layout);
 
         return view;
     }
